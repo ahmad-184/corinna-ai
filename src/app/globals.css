@@ -79,6 +79,14 @@ body {
   }
 }
 
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-border;
+}
+
 .chat-window::-webkit-scrollbar {
   display: none;
 }
@@ -152,4 +160,38 @@ body {
 .parsed-container img {
   width: 100% !important;
   border-radius: 20px;
+}
+
+.fade-animate {
+  animation: destroy-animate 0.2s backwards ease-in-out;
+}
+
+@keyframes destroy-animate {
+  0% {
+    opacity: 1;
+    display: block;
+  }
+  60% {
+    opacity: 1;
+    display: block;
+  }
+  100% {
+    opacity: 0.4;
+    display: none;
+  }
+}
+
+.fade-in-animate {
+  animation: build-animate 0.2s forwards ease-in-out;
+  transition: opacity 0.1s;
+}
+
+@keyframes build-animate {
+  0% {
+    opacity: 0;
+    display: block;
+  }
+  100% {
+    opacity: 1;
+  }
 }

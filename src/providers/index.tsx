@@ -1,3 +1,5 @@
+"use client";
+
 import ClientEnvironmentVars, {
   ClientEnvironmentVarsType,
 } from "./client-environment-vars";
@@ -5,6 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import QueryClientProvider from "./query-client-provider";
 import { ThemeProvider } from "./theme-provider";
+import useThemeMode from "@/hooks/use-theme-mode";
 
 export const Providers = ({
   children,
@@ -13,6 +16,8 @@ export const Providers = ({
   cloudinary_preset,
   cloudinary_upload_folder,
 }: { children: React.ReactNode } & ClientEnvironmentVarsType) => {
+  const { theme } = useThemeMode();
+
   return (
     <QueryClientProvider>
       <ClientEnvironmentVars
@@ -28,7 +33,11 @@ export const Providers = ({
           disableTransitionOnChange
         >
           <TooltipProvider>{children}</TooltipProvider>
-          <Toaster />
+          <Toaster
+            closeButton={true}
+            position="top-right"
+            theme={theme === "dark" ? "dark" : "light"}
+          />
         </ThemeProvider>
       </ClientEnvironmentVars>
     </QueryClientProvider>

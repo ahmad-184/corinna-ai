@@ -6,7 +6,7 @@ export const signUpFormSchema = z
       .string()
       .min(3, { message: "Name should have more than 3 characters" })
       .max(64, { message: "It is too much brother" }),
-    email: z.string().email({ message: "Invalid email address" }),
+    email: z.string().email({ message: "Invalid email address" }).min(1),
     type: z.enum(["owner", "student"]),
     password: z
       .string()
@@ -21,20 +21,28 @@ export const signUpFormSchema = z
     path: ["passwordConfirmation"],
   });
 
-export const verifyEmailFormSchema = z.object({
-  otp: z.string().max(6),
-  userId: z.string(),
+export const verifyOtpFormSchema = z.object({
+  otp: z.string().max(6).min(1, { message: "Please enter the code" }),
+  userId: z
+    .string()
+    .min(1, { message: "You can not do this more than one time" }),
 });
 
 export const signInFormSchema = z.object({
-  email: z.string().email({ message: "Invalid email address" }).min(1),
+  email: z
+    .string()
+    .email({ message: "Invalid email address" })
+    .min(1, { message: "Email is required" }),
   password: z
     .string()
     .min(8, { message: "password must have more than 8 characteres" }),
 });
 
-export const forgotPasswordFormSchema = z.object({
-  email: z.string().email({ message: "Invalid email address" }).min(1),
+export const emailSchema = z.object({
+  email: z
+    .string()
+    .email({ message: "Invalid email address" })
+    .min(1, { message: "Email is required" }),
 });
 
 export const resetPasswordFormSchema = z
@@ -43,7 +51,9 @@ export const resetPasswordFormSchema = z
       .string()
       .min(8, { message: "password must have more than 8 characteres" }),
     passwordConfirmation: z.string().min(8),
-    token: z.string(),
+    userId: z
+      .string()
+      .min(1, { message: "You can not do this more than one time" }),
   })
   .refine((data) => data.password === data.passwordConfirmation, {
     message: "Password and Confirm password don't match",

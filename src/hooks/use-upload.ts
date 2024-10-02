@@ -5,12 +5,13 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import axios from "axios";
 import { useEnvVars } from "@/providers/client-environment-vars";
+import { z } from "zod";
 
 // upload files using cloudinary storage
 ("---------------------------------------------------");
 
 interface Props {
-  ref: React.MutableRefObject<HTMLInputElement | null>;
+  ref?: React.MutableRefObject<HTMLInputElement | null>;
   max_size?: number;
 }
 
@@ -28,6 +29,7 @@ type uploadedFileTypes = {
   public_id: string;
   resource_type: string;
   secure_url: string;
+  url: string;
   signature: string;
   type: string;
   version: number;
@@ -36,10 +38,43 @@ type uploadedFileTypes = {
   tags: string[];
 };
 
+export const ACCEPTED_FILE_TYPE = [
+  "image/png",
+  "image/jpg",
+  "image/jpeg",
+  "image/svg",
+];
+
+const validateFile = (file: File, MAX_UPLOAD_SIZE: number) => {
+  const { success, error } = z
+    .any()
+    .refine((file) => file?.type.startsWith("image/"), {
+      message: `Incorrect file type`,
+    })
+    .refine((file) => file?.size <= MAX_UPLOAD_SIZE, {
+      message: `Your file size must be less than ${`${MAX_UPLOAD_SIZE}`[0]}`,
+    })
+    .refine((file) => ACCEPTED_FILE_TYPE.includes(file?.type), {
+      message: "Only JPG, JPEG, SVG & PNG are accepted file formats",
+    })
+    .safeParse(file);
+
+  if (!success) return { error: error?.errors[0].message };
+
+  return {};
+};
+
 export const useUpload = ({ ref, max_size = 3 }: Props) => {
   const [files, setFiles] = useState<File[] | []>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+
+  const removeFiles = () => {
+    setFiles([]);
+    if (ref?.current) {
+      ref.current.value = "";
+    }
+  };
 
   const {
     cloudinary_api_key,
@@ -51,37 +86,31 @@ export const useUpload = ({ ref, max_size = 3 }: Props) => {
   useEffect(() => {
     function handleGetFiles(e: any) {
       if (e.target.files?.length) {
-        const filesArr = e.target.files;
-        setFiles(filesArr);
+        const filesArr = e.target.files as File[];
+        let isValid = true;
+        for (let f of filesArr) {
+          const { error } = validateFile(f, 1024000 * max_size);
+          if (error) {
+            toast.error(error);
+            isValid = false;
+          }
+        }
+        if (isValid) setFiles(filesArr);
+        else setFiles([]);
       }
     }
 
-    if (ref.current) {
+    if (ref?.current) {
       ref.current.addEventListener("change", handleGetFiles);
     }
     return () => {
-      ref.current?.removeEventListener("change", handleGetFiles);
+      ref?.current?.removeEventListener("change", handleGetFiles);
     };
-  }, [ref, ref.current]);
-
-  const validateFile = (file: File) => {
-    if (file.size > 1000000 * max_size)
-      return {
-        error: {
-          message: `file too large, max size ${max_size}mb`,
-        },
-      };
-    if (!file.type.startsWith("image/"))
-      return {
-        error: {
-          message: "file type incorrect",
-        },
-      };
-  };
+  }, [ref, ref?.current]);
 
   const startUpload = async () => {
     try {
-      if (!files.length) return [];
+      if (!files.length) return;
 
       let uploadedFiles = [];
       setIsUploading(true);
@@ -89,37 +118,24 @@ export const useUpload = ({ ref, max_size = 3 }: Props) => {
         const formData = new FormData();
         const fileType = file.type;
         const isImage = Boolean(fileType.startsWith("image"));
-        const isVideo = Boolean(fileType.startsWith("video"));
-        const isAudio = Boolean(fileType.startsWith("audio"));
-        const isPdf = Boolean(fileType.startsWith("pdf"));
 
-        const err = validateFile(file);
-        if (err) {
-          toast.error(err.error.message);
+        const { error } = validateFile(file, 1024000 * max_size);
+        if (error) {
+          toast.error(error);
           return;
         }
+
         formData.append("file", file);
         formData.append("upload_preset", cloudinary_preset);
         formData.append("api_key", cloudinary_api_key);
         formData.append("cloud_name", cloudinary_cloud_name);
         formData.append("folder", cloudinary_upload_folder);
         formData.append("public_id", `${file.name}-${uuid()}`);
-        if (isPdf) {
-          formData.append("tags", "fl_attachment");
-        }
 
         try {
           const res = await axios.post(
             `https://api.cloudinary.com/v1_1/${cloudinary_cloud_name}/${
-              isImage
-                ? "image"
-                : isVideo
-                ? "video"
-                : isPdf
-                ? "image"
-                : isAudio
-                ? "raw"
-                : "raw"
+              isImage ? "image" : "raw"
             }/upload`,
             formData,
             {
@@ -142,18 +158,18 @@ export const useUpload = ({ ref, max_size = 3 }: Props) => {
             type: fileType,
           });
         } catch (err) {
-          toast.error("something went wrong, please try again");
+          toast.error("Something went wrong, please try again");
           console.log(err);
         }
       }
       return uploadedFiles;
     } catch (err) {
       console.log(err);
-      toast.error("something went wrong, please try again");
+      toast.error("Something went wrong, please try again");
     } finally {
       setIsUploading(false);
       setFiles([]);
-      if (ref.current) {
+      if (ref?.current) {
         ref.current.value = "";
       }
     }
@@ -165,6 +181,7 @@ export const useUpload = ({ ref, max_size = 3 }: Props) => {
     isUploading,
     progress,
     setFiles,
+    removeFiles,
   };
 };
 

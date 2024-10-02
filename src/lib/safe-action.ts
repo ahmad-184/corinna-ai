@@ -18,7 +18,10 @@ export function SafeAction<
       return { data: responseDto };
     } catch (e) {
       if (e instanceof Error) {
-        return { data: null, error: e.message || "Something went wrong" };
+        return {
+          data: null,
+          error: e.message || "Something went wrong",
+        };
       } else return { data: null, error: "Something went wrong" };
     }
   };
@@ -37,6 +40,7 @@ export function AuthenticatedAction<
   return async (input: z.infer<InputZod>) => {
     try {
       const user = await validateUser();
+
       const validatedInput = ZodValidator(validator, input);
       const responseDto = await action(validatedInput, user);
 

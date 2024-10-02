@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/providers";
+import NextTopLoader from "nextjs-toploader";
 
 const jakarta_font = Plus_Jakarta_Sans({
   display: "swap",
@@ -25,7 +26,7 @@ export const RootLayout = ({
 }>) => {
   return (
     <html lang="en">
-      <body className={`${jakarta_font.className} antialiased`}>
+      <body className={`${jakarta_font.className} antialiased overflow-hidden`}>
         <Providers
           cloudinary_api_key={process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!}
           cloudinary_cloud_name={process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!}
@@ -35,6 +36,7 @@ export const RootLayout = ({
           }
         >
           {children}
+          <NextTopLoader showSpinner={false} color="#FFA947" />
         </Providers>
       </body>
     </html>

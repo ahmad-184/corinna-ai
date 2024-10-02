@@ -5,11 +5,10 @@ import { redirect } from "next/navigation";
 
 const Layout = async ({ children }: { children: React.ReactNode }) => {
   const user = await getCurrentUser();
-
-  if (user) return redirect("/");
+  if (user) return redirect("/dashboard");
 
   return (
-    <div className="h-screen flex w-full justify-start relative">
+    <div className="h-screen flex w-full justify-start relative overflow-y-auto">
       <div className="lg:w-[600px] w-full flex-col items-start p-6">
         <Link href={"/"}>
           <Image

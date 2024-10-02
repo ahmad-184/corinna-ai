@@ -35,15 +35,18 @@ model Account {
   type          AccountType
   user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  otpToken    String?   @unique
+  otpExpireAt DateTime?
+
   @@index([userId])
 }
 
-model verifyEmailOtp {
-  id       String   @id @unique @default(uuid())
-  userId   String   @unique
-  otp      String   @unique
-  expireAt DateTime
-}
+// model verifyEmailOtp {
+//   id       String   @id @unique @default(uuid())
+//   userId   String   @unique
+//   otp      String   @unique
+//   expireAt DateTime
+// }
 
 model User {
   id        String   @id @default(uuid())
@@ -106,8 +109,8 @@ model HelpDesk {
   question String
   answer   String
 
-  Domain   Domain? @relation(fields: [domainId], references: [id], onDelete: Cascade)
-  domainId String?
+  Domain   Domain @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  domainId String
 }
 
 model FilterQuestions {

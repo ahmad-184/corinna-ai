@@ -1,7 +1,7 @@
 "use client";
 
 import AuthProvider from "@/contexts/use-auth-context";
-import useSignUp from "@/hooks/use-sign-up";
+import useSignUp from "@/hooks/auth/use-sign-up";
 import { FormProvider } from "react-hook-form";
 
 const SignUpFormProvider = ({ children }: { children: React.ReactNode }) => {

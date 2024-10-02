@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { returnError } from "@/lib/errors";
-import { SafeAction } from "@/lib/safe-action";
+import { AuthenticatedAction, SafeAction } from "@/lib/safe-action";
 import { z } from "zod";
 
 export const getUserByEmail = SafeAction(
@@ -10,6 +10,15 @@ export const getUserByEmail = SafeAction(
       const user = await db.user.findUnique({
         where: {
           email: data.email,
+        },
+        select: {
+          type: true,
+          id: true,
+          avatar: true,
+          email: true,
+          fullname: true,
+          stripeId: true,
+          subscription: true,
         },
       });
       return user;
@@ -27,6 +36,15 @@ export const getUserById = SafeAction(
       const user = await db.user.findUnique({
         where: {
           id: data.id,
+        },
+        select: {
+          type: true,
+          id: true,
+          avatar: true,
+          email: true,
+          fullname: true,
+          stripeId: true,
+          subscription: true,
         },
       });
       return user;
@@ -54,6 +72,18 @@ export const createUser = SafeAction(
           type: data.type,
           ...(data.id && { id: data.id }),
           ...(data.avatar && { avatar: data.avatar }),
+          subscription: {
+            create: {},
+          },
+        },
+        select: {
+          type: true,
+          id: true,
+          avatar: true,
+          email: true,
+          fullname: true,
+          stripeId: true,
+          subscription: true,
         },
       });
       return user;
@@ -81,7 +111,37 @@ export const updateUser = SafeAction(
       const res = await db.user.update({
         where: { id },
         data,
+        select: {
+          type: true,
+          id: true,
+          avatar: true,
+          email: true,
+          fullname: true,
+          stripeId: true,
+          subscription: true,
+        },
       });
+      return res;
+    } catch (err) {
+      console.log(err);
+      return returnError(err as Error);
+    }
+  }
+);
+
+export const getUserSubscriptionPlan = AuthenticatedAction(
+  z.object({
+    user_id: z.string().min(1),
+  }),
+  async ({ user_id }) => {
+    try {
+      const res = await db.billings.findUnique({
+        where: { userId: user_id },
+        select: {
+          plan: true,
+        },
+      });
+
       return res;
     } catch (err) {
       console.log(err);

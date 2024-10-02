@@ -17,23 +17,20 @@ import verifyEmailTemplate from "@/templates/verify-email";
 import { SafeAction } from "@/lib/safe-action";
 import { rateLimitter } from "./global";
 import {
-  forgotPasswordFormSchema,
+  emailSchema,
   resetPasswordFormSchema,
   signInFormSchema,
   signUpFormSchema,
-  verifyEmailFormSchema,
+  verifyOtpFormSchema,
 } from "@/zod/auth";
 import { db } from "@/lib/db";
-import { User } from "@prisma/client";
+import { Account, User } from "@prisma/client";
 import {
   compareHashes,
   createHash,
-  createJwtToken,
   generateRandomSixDigitNumber,
   hashPassword,
-  verifyJwtToken,
 } from "@/lib/use-cases";
-import resetPasswordTemplate from "@/templates/reset-password";
 import { z } from "zod";
 
 const TOKEN_TTL = 1000 * 60 * 10; // 10 min
@@ -56,7 +53,7 @@ export const validateUser = cache(async () => {
 export const logoutUser = async () => {
   await validateUser();
   await deleteSession();
-  return redirect("/");
+  return redirect("/sign-in");
 };
 
 export const getAccountByUserId = SafeAction(
@@ -89,7 +86,7 @@ export const registerUserAction = SafeAction(signUpFormSchema, async (data) => {
       },
     });
 
-    let user: User | null = null;
+    let user = null;
 
     if (existingUser) {
       if (existingUser.Account?.emailVerified) throw new EmailInUseError();
@@ -116,30 +113,36 @@ export const registerUserAction = SafeAction(signUpFormSchema, async (data) => {
 
     const otp = generateRandomSixDigitNumber().toString();
 
-    const verify_otp_data_exist = await getVerifyOtpByUserId({
-      userId: user.id,
-    });
+    const hashedOtp = await createHash(otp);
 
-    if (verify_otp_data_exist.data) {
-      await deleteVerifyOtp({ userId: verify_otp_data_exist.data.userId });
+    const acc_exist = await getAccountByUserId({ userId: user.id });
+
+    let acc: { data: Account | null | void } = { data: null };
+    if (acc_exist.data) {
+      acc = await updateAccount({
+        id: acc_exist.data.id,
+        data: {
+          type: "PASSWORD",
+          password: data.password,
+          otpToken: hashedOtp,
+          otpExpireAt: new Date(Date.now() + TOKEN_TTL),
+        },
+      });
+    } else {
+      acc = await createAccount({
+        userId: user.id,
+        type: "PASSWORD",
+        password: data.password,
+        otpToken: hashedOtp,
+        otpExpireAt: new Date(Date.now() + TOKEN_TTL),
+      });
     }
 
-    const verifyOtpData = await createVerifyOtp({
-      userId: user.id,
-      otp,
-    });
-
-    if (!verifyOtpData) throw new PublicError();
-
-    const acc = await createAccount({
-      userId: user.id,
-      type: "PASSWORD",
-      password: data.password,
-    });
-    if (!acc.data) throw new PublicError();
+    if (!acc.data)
+      throw new PublicError("Something went wrong, please try again");
 
     const { error } = await emailSender({
-      subject: "Verify your email",
+      subject: "Verification code",
       body: verifyEmailTemplate({ code: otp }),
       email: user.email,
     });
@@ -152,46 +155,6 @@ export const registerUserAction = SafeAction(signUpFormSchema, async (data) => {
     return returnError(err as Error);
   }
 });
-
-export const verifyEmailAction = SafeAction(
-  verifyEmailFormSchema,
-  async (data) => {
-    try {
-      const verifiy_otp_data = await getVerifyOtpByUserId({
-        userId: data.userId,
-      });
-
-      if (!verifiy_otp_data.data)
-        throw new PublicError("Something went wrong, please try again");
-
-      const isEqual = await compareHashes(data.otp, verifiy_otp_data.data.otp);
-
-      if (!Boolean(isEqual)) throw new PublicError("Entered code is incorrect");
-
-      if (new Date(verifiy_otp_data.data.expireAt) < new Date(Date.now()))
-        throw new VerifyCodeExpiredError();
-
-      const account = await getAccountByUserId({
-        userId: verifiy_otp_data.data.userId,
-      });
-
-      if (!account.data) throw new PublicError();
-
-      await updateAccount({
-        id: account.data.id,
-        data: {
-          emailVerified: true,
-        },
-      });
-
-      await deleteVerifyOtp({ userId: verifiy_otp_data.data.userId });
-
-      return verifiy_otp_data.data.userId;
-    } catch (err) {
-      return returnError(err as Error);
-    }
-  }
-);
 
 export const signInUserAction = SafeAction(signInFormSchema, async (data) => {
   try {
@@ -215,37 +178,47 @@ export const signInUserAction = SafeAction(signInFormSchema, async (data) => {
 
     await setSession(user.data.id);
 
+    await updateAccount({
+      id: account.data.id,
+      data: {
+        otpExpireAt: undefined,
+        otpToken: "",
+      },
+    });
+
     return user.data.id;
   } catch (err) {
     return returnError(err as Error);
   }
 });
 
-export const forgotPasswordUserAction = SafeAction(
-  forgotPasswordFormSchema,
+export const sendForgotPasswordOtpUserAction = SafeAction(
+  emailSchema,
   async (data) => {
     try {
       const user = await getUserByEmail({ email: data.email });
-
       if (!user.data) throw new PublicError("There is no user with this email");
 
-      const token = await createJwtToken({
+      const account = await getAccountByUserId({ userId: user.data.id });
+      if (!account.data)
+        throw new PublicError("There is no user with this email");
+
+      const otp = generateRandomSixDigitNumber().toString();
+
+      const hashedOtp = await createHash(otp);
+
+      await updateAccount({
+        id: account.data.id,
         data: {
-          user_id: user.data.id,
+          otpToken: hashedOtp,
+          otpExpireAt: new Date(Date.now() + TOKEN_TTL),
         },
-        expireAt: 10 * 60,
       });
-
-      if (!token) throw new PublicError();
-
-      const link = `${process.env.NEXT_PUBLIC_URL}/forgot-password?token=${token}`;
 
       const { error, message } = await emailSender({
         email: data.email,
-        subject: `Rest Your Password`,
-        body: resetPasswordTemplate({
-          link,
-        }),
+        subject: `Rest password code`,
+        body: verifyEmailTemplate({ code: otp }),
       });
 
       if (error)
@@ -260,24 +233,42 @@ export const forgotPasswordUserAction = SafeAction(
   }
 );
 
+export const verifyOtpAction = SafeAction(verifyOtpFormSchema, async (data) => {
+  try {
+    const account = await getAccountByUserId({ userId: data.userId });
+
+    if (!account.data?.otpToken || !account.data?.otpExpireAt)
+      throw new PublicError();
+
+    const isEqual = await compareHashes(data.otp, account.data.otpToken);
+
+    if (!Boolean(isEqual)) throw new PublicError("Entered code is incorrect");
+
+    if (new Date(account.data.otpExpireAt) < new Date(Date.now()))
+      throw new VerifyCodeExpiredError();
+
+    await updateAccount({
+      id: account.data.id,
+      data: {
+        otpExpireAt: undefined,
+        otpToken: "",
+      },
+    });
+
+    return account.data.userId;
+  } catch (err) {
+    return returnError(err as Error);
+  }
+});
+
 export const resetPasswordUserAction = SafeAction(
   resetPasswordFormSchema,
   async (data) => {
     try {
-      const verified_token = (await verifyJwtToken(data.token)) as {
-        user_id: string;
-      };
+      const user_exist = await getUserById({ id: data.userId });
+      if (!user_exist.data) throw new PublicError("User not found");
 
-      if (!verified_token) throw new PublicError("Link expired or invalid");
-
-      const { user_id } = verified_token;
-      if (!user_id) throw new PublicError("Link expired or invalid");
-
-      const user_exist = await getUserById({ id: user_id });
-
-      if (!user_exist) throw new PublicError("User not found");
-
-      const account = await getAccountByUserId({ userId: user_id });
+      const account = await getAccountByUserId({ userId: data.userId });
       if (!account.data) throw new PublicError();
 
       const hashedPassword = await hashPassword(data.password, 10);
@@ -289,7 +280,7 @@ export const resetPasswordUserAction = SafeAction(
         },
       });
 
-      return user_id;
+      return user_exist.data.id;
     } catch (err) {
       return returnError(err as Error);
     }
@@ -300,15 +291,13 @@ export const createAccount = SafeAction(
   z.object({
     type: z.enum(["PASSWORD", "GOOGLE"]),
     userId: z.string(),
+    otpToken: z.string().optional(),
+    otpExpireAt: z.date().optional(),
     password: z.string().optional(),
     verified: z.boolean().optional(),
   }),
-  async ({ type, userId, password, verified }) => {
-    const account_exist = await db.account.findUnique({ where: { userId } });
-    if (account_exist) await db.account.delete({ where: { userId } });
-
+  async ({ type, userId, password, verified, otpExpireAt, otpToken }) => {
     let hash;
-
     if (password) {
       hash = await hashPassword(password, 10);
     }
@@ -318,9 +307,29 @@ export const createAccount = SafeAction(
         password: hash,
         type,
         emailVerified: verified || false,
+        otpExpireAt,
+        otpToken,
       },
     });
     return account;
+  }
+);
+
+export const getAccountById = SafeAction(
+  z.object({
+    id: z.string(),
+  }),
+  async ({ id }) => {
+    try {
+      const res = await db.account.findUnique({
+        where: {
+          id,
+        },
+      });
+      return res;
+    } catch (err) {
+      return returnError(err as Error);
+    }
   }
 );
 
@@ -330,6 +339,8 @@ export const updateAccount = SafeAction(
     data: z.object({
       emailVerified: z.boolean().optional(),
       password: z.string().optional(),
+      otpToken: z.string().optional(),
+      otpExpireAt: z.date().optional(),
       type: z.enum(["PASSWORD", "GOOGLE"]).optional(),
       userId: z.string().optional(),
     }),
@@ -340,78 +351,6 @@ export const updateAccount = SafeAction(
         where: { id },
         data,
       });
-      return res;
-    } catch (err) {
-      console.log(err);
-      return returnError(err as Error);
-    }
-  }
-);
-
-export const createVerifyOtp = SafeAction(
-  z.object({ userId: z.string(), otp: z.string() }),
-  async ({ userId, otp }) => {
-    try {
-      const hashedOtp = await createHash(otp);
-
-      const existing_varify_otp = await db.verifyEmailOtp.findUnique({
-        where: {
-          userId,
-        },
-      });
-
-      if (existing_varify_otp) {
-        await db.verifyEmailOtp.deleteMany({
-          where: {
-            userId,
-          },
-        });
-      }
-
-      const res = await db.verifyEmailOtp.create({
-        data: {
-          userId,
-          expireAt: new Date(Date.now() + TOKEN_TTL),
-          otp: hashedOtp,
-        },
-      });
-
-      return res;
-    } catch (err) {
-      console.log(err);
-      return returnError(err as Error);
-    }
-  }
-);
-
-export const deleteVerifyOtp = SafeAction(
-  z.object({ userId: z.string() }),
-  async ({ userId }) => {
-    try {
-      const res = await db.verifyEmailOtp.deleteMany({
-        where: {
-          userId,
-        },
-      });
-
-      return res;
-    } catch (err) {
-      console.log(err);
-      return returnError(err as Error);
-    }
-  }
-);
-
-export const getVerifyOtpByUserId = SafeAction(
-  z.object({ userId: z.string() }),
-  async ({ userId }) => {
-    try {
-      const res = await db.verifyEmailOtp.findUnique({
-        where: {
-          userId,
-        },
-      });
-
       return res;
     } catch (err) {
       console.log(err);

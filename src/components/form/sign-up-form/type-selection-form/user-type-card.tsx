@@ -1,7 +1,9 @@
 import { Card, CardContent, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { UserIcon } from "lucide-react";
+import { FieldValues, UseFormRegister } from "react-hook-form";
 
 type UserTypeCardProps = {
   value: "owner" | "student";
@@ -9,6 +11,7 @@ type UserTypeCardProps = {
   description: string;
   userType: "owner" | "student" | "";
   setUserType: (value: "owner" | "student") => void;
+  register: UseFormRegister<FieldValues>;
 };
 
 const UserTypeCard = ({
@@ -17,6 +20,7 @@ const UserTypeCard = ({
   description,
   userType,
   setUserType,
+  register,
 }: UserTypeCardProps) => {
   return (
     <Label htmlFor={value}>
@@ -55,7 +59,17 @@ const UserTypeCard = ({
                 className={
                   "absolute p-[6px] rounded-full bg-orange top-3 right-3"
                 }
-              />
+              >
+                <Input
+                  {...register("type", {
+                    onChange: (event) => setUserType(event.target.value),
+                  })}
+                  value={value}
+                  id={value}
+                  className="hidden"
+                  type="radio"
+                />
+              </div>
             ) : null}
           </div>
         </CardContent>

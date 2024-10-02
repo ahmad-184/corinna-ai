@@ -27,7 +27,7 @@ const CustomAlertDialog: React.FC<CustomAlertDialogProps> = ({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
-      <AlertDialogContent className="overflow-auto max-h-[95vh]">
+      <AlertDialogContent className="h-fit max-h-[95vh]">
         <AlertDialogHeader>
           <AlertDialogTitle className="dark:text-gray-200">
             {header}

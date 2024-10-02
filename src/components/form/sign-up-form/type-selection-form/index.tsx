@@ -1,21 +1,16 @@
 import { useAuthContext } from "@/contexts/use-auth-context";
 import { useFormContext } from "react-hook-form";
 import UserTypeCard from "./user-type-card";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 const TypeSelectionForm = () => {
-  const { setValue, setError } = useFormContext();
+  const { register, getValues } = useFormContext();
   const { setCurrentStep } = useAuthContext();
   const [selectedType, setSelectedType] = useState<"owner" | "student" | "">(
-    ""
+    getValues().type || ""
   );
-
-  useEffect(() => {
-    setValue("type", selectedType);
-    if (selectedType) setError("type", {});
-  }, [selectedType]);
 
   const handleNextStep = () => {
     if (
@@ -23,6 +18,7 @@ const TypeSelectionForm = () => {
       (selectedType !== "owner" && selectedType !== "student")
     )
       return;
+    setCurrentStep(2);
   };
 
   return (
@@ -40,6 +36,7 @@ const TypeSelectionForm = () => {
         description="Setting up my account for company"
         userType={selectedType}
         setUserType={(e) => setSelectedType(e)}
+        register={register}
       />
       <UserTypeCard
         value="student"
@@ -47,6 +44,7 @@ const TypeSelectionForm = () => {
         description="Looking to learn the tool"
         userType={selectedType}
         setUserType={(e) => setSelectedType(e)}
+        register={register}
       />
       <Button onClick={handleNextStep}>Continue</Button>
       <div className="text-center w-full">

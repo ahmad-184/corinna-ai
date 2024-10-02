@@ -11,7 +11,7 @@ export default function resetPasswordTemplate({ link }: { link: string }) {
                     <tr>
                       <td align="center" class="esd-block-image" style="font-size: 0">
                         <a target="_blank">
-                          <img src="https://foisjmq.stripocdn.email/content/guids/CABINET_66565c4e63ec25d450e5b01677f3d8b61c99d16cbd7ada1ac1543e7204aa2c10/images/pluralogo_1.png" alt="" width="100">
+                          <img src="https://res.cloudinary.com/dzml3ymzi/image/upload/v1726524678/tafhchfiih33wtrekjva.png" alt="" width="100">
                         </a>
                       </td>
                     </tr>
