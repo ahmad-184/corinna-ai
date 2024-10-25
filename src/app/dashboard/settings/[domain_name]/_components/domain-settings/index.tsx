@@ -3,45 +3,58 @@ import { db } from "@/lib/db";
 import DomainSettingsForm from "./domain-settings-form";
 import { redirect } from "next/navigation";
 import BotTrainingForm from "./bot-training-form";
+import CodeSnippet from "./code-snippet";
+import ChatbotSettings from "./chatbot-settings";
+import Products from "./products";
 
 type Props = { domain: string };
 
 const DomainSettings = async ({ domain }: Props) => {
   const user = await validateUser();
 
-  const data = await db.user.findUnique({
-    where: { id: user.id },
+  const data = await db.domain.findFirst({
+    where: {
+      name: { contains: domain },
+    },
     select: {
-      subscription: {
-        select: { plan: true },
-      },
-      domains: {
-        where: {
-          name: { contains: domain },
-        },
+      id: true,
+      name: true,
+      icon: true,
+      chatBot: {
         select: {
           id: true,
-          name: true,
+          welcomeMessage: true,
           icon: true,
-          chatBot: {
-            select: {
-              id: true,
-              welcomeMessage: true,
-              icon: true,
-            },
-          },
+          helpdesk: true,
+          avatar: true,
+          company_name: true,
+          watermark: true,
+          name: true,
+        },
+      },
+      helpdesk: {
+        select: {
+          answer: true,
+          id: true,
+          question: true,
         },
       },
     },
   });
 
-  if (!data?.domains || !data?.domains[0] || !data?.domains[0].chatBot)
-    return redirect("/dashboard");
+  if (!data || !data.chatBot) return redirect("/dashboard");
 
   return (
     <div className="flex w-full flex-col gap-10">
-      <DomainSettingsForm data={data} />
-      <BotTrainingForm domain_id={data.domains[0].id} />
+      <CodeSnippet id={data.chatBot.id} />
+      <DomainSettingsForm domain={data} subscription={user.subscription} />
+      <ChatbotSettings
+        chatbot={data.chatBot}
+        helpdesk={data.helpdesk}
+        subscription={user.subscription}
+      />
+      <BotTrainingForm domain_id={data.id} />
+      <Products domain_id={data.id} />
     </div>
   );
 };

@@ -24,7 +24,7 @@ const RegistrationFormSteps = () => {
     case 3:
       return <VerifyOtpform />;
     default:
-      return <></>;
+      return null;
   }
 };
 

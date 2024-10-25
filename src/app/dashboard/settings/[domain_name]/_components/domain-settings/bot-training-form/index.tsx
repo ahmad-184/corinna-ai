@@ -8,18 +8,18 @@ type Props = {
 
 const BotTrainingForm = ({ domain_id }: Props) => {
   return (
-    <div className="w-full flex  flex-col gap-5 items-start">
-      <div className="w-full flex flex-col gap-2">
+    <div className="w-full flex flex-col gap-5 items-start">
+      <div className="w-full flex flex-col gap-1">
         <h2 className="font-bold text-2xl">Bot Training</h2>
         <p className="text-sm font-light">
-          Set FAQ questions, creae questions for capturing lead information and
+          Set FAQ questions, create questions for capturing lead information and
           train your bot to act the way you want it to.
         </p>
       </div>
       <Tabs defaultValue="help_desk" className="w-full">
         <TabsList className="w-fit flex gap-3 justify-start h-fit">
           <TabsTrigger value="help_desk" className="p-2 px-4">
-            Help desk
+            Help Desk
           </TabsTrigger>
           <TabsTrigger value="questions" className="p-2 px-4">
             Questions

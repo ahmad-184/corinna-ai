@@ -26,7 +26,9 @@ export const RootLayout = ({
 }>) => {
   return (
     <html lang="en">
-      <body className={`${jakarta_font.className} antialiased overflow-hidden`}>
+      <body
+        className={`${jakarta_font.className} antialiased overflow-hidden !bg-background`}
+      >
         <Providers
           cloudinary_api_key={process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!}
           cloudinary_cloud_name={process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!}

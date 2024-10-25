@@ -18,14 +18,14 @@ export const emailSender = async ({
   body,
   subject,
 }: {
-  email: string;
+  email: string | string[];
   body: string;
   subject: string;
 }) => {
   try {
     const options = {
       from: USER,
-      to: email || "",
+      to: email,
       subject: subject,
       html: body,
     };

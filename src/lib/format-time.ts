@@ -5,15 +5,19 @@ export function fullDate(date: Date | string) {
 }
 
 export function fDate(date: Date | string) {
-  return format(new Date(date), "dd MMMM yyyy");
+  return format(new Date(date), "dd MMM yyyy");
 }
 
 export function fDateTime(date: Date | string) {
-  return format(new Date(date), "dd MMM yyyy HH:mm");
+  return format(new Date(date), "dd MMM yyyy, HH:mm");
+}
+
+export function fDateTimeP(date: Date | string) {
+  return format(new Date(date), "dd MMM yyyy, p");
 }
 
 export function fDateTimeHM(date: Date | string) {
-  return format(new Date(date), "HH:mm");
+  return format(new Date(date), "p");
 }
 
 export function fTimestamp(date: Date | string) {

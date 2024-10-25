@@ -24,7 +24,7 @@ import {
   verifyOtpFormSchema,
 } from "@/zod/auth";
 import { db } from "@/lib/db";
-import { Account, User } from "@prisma/client";
+import { Account } from "@prisma/client";
 import {
   compareHashes,
   createHash,
@@ -119,11 +119,12 @@ export const registerUserAction = SafeAction(signUpFormSchema, async (data) => {
 
     let acc: { data: Account | null | void } = { data: null };
     if (acc_exist.data) {
+      const hashedPass = await hashPassword(data.password, 10);
       acc = await updateAccount({
         id: acc_exist.data.id,
         data: {
           type: "PASSWORD",
-          password: data.password,
+          password: hashedPass,
           otpToken: hashedOtp,
           otpExpireAt: new Date(Date.now() + TOKEN_TTL),
         },

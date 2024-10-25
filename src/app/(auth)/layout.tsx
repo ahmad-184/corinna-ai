@@ -24,7 +24,7 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
         <div className="mt-10 2xl:ml-14">{children}</div>
       </div>
       <div
-        className="hidden lg:flex flex-1 !max-w-[850px] w-full max-h-full  overflow-hidden fixed top-0 bottom-0 right-0 bg-cream flex-col 
+        className="hidden lg:flex flex-1 !max-w-[850px] w-full max-h-full  overflow-hidden fixed top-0 bottom-0 right-0 bg-cream dark:bg-zinc-900 flex-col 
       pl-24 pt-10"
         style={{
           width: "calc(100% - 600px)",
@@ -33,7 +33,7 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
         <h2 className="md:text-4xl font-bold">
           Hi, I'm your AI powered sales assistant, Corinna!
         </h2>
-        <p className="text-iridium md:text-sm mb-10 font-medium mt-1">
+        <p className="text-iridium dark:text-muted-foreground md:text-sm mb-10 font-medium mt-1">
           Corinna is capable of capturing lead information without a form...{" "}
           <br />
           something never done before 😉

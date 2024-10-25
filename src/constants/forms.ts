@@ -1,10 +1,10 @@
 export type UserRegistrationProps = {
-  id: string;
-  type?: "email" | "text" | "password" | "color";
+  id?: string;
+  type?: "email" | "text" | "password" | "color" | "number";
   inputType: "select" | "input" | "checkbox" | "radio" | "textarea";
   options?: { value: string; label: string; id: string }[];
   label?: string;
-  placeholder: string;
+  placeholder?: string;
   name: string;
 };
 
@@ -82,5 +82,50 @@ export const CHECK_USER_EMAIL_FORM: UserRegistrationProps[] = [
     placeholder: "Your email",
     name: "email",
     type: "email",
+  },
+];
+
+export const APPOINTMENT_TIME_SLOT = [
+  {
+    slot: "3:30pm",
+  },
+  {
+    slot: "4:00pm",
+  },
+  {
+    slot: "4:30pm",
+  },
+  {
+    slot: "5:00pm",
+  },
+  {
+    slot: "5:30pm",
+  },
+  {
+    slot: "6:00pm",
+  },
+];
+
+export const ADD_CREDIT_FORM = [
+  {
+    id: "1",
+    value: "100",
+    title: "100 Credits",
+    description: "$0.10 per credit",
+    price: "10",
+  },
+  {
+    id: "2",
+    value: "500",
+    title: "500 Credits",
+    description: "$0.09 per credit",
+    price: "45",
+  },
+  {
+    id: "3",
+    value: "1000",
+    title: "1000 Credits",
+    description: "$0.08 per credit",
+    price: "80",
   },
 ];

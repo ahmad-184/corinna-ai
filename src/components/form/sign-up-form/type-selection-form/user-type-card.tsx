@@ -37,14 +37,14 @@ const UserTypeCard = ({
             >
               <UserIcon
                 size={30}
-                className={cn("text-gray-400", {
+                className={cn("text-gray-400 dark:text-zinc-100", {
                   "!text-orange": value === userType,
                 })}
               />
             </Card>
             <div>
               <CardDescription
-                className={cn("font-bold text-gray-900", {
+                className={cn("font-bold text-gray-900 dark:text-zinc-100", {
                   "!text-orange": value === userType,
                 })}
               >

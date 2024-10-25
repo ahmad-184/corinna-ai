@@ -13,10 +13,10 @@ const AccountDetailsForm = () => {
   return (
     <form onSubmit={handleSubmit(register)}>
       <div className="flex flex-col gap-3 w-full">
-        <h2 className="text-gravel md:text-4xl md:mb-1 font-bold text-lg">
+        <h2 className="text-gravel dark:text-zinc-100 md:text-4xl md:mb-1 font-bold text-lg">
           Account details
         </h2>
-        <p className=" text-iridium text-sm font-medium">
+        <p className=" text-iridium dark:text-muted-foreground text-sm font-medium">
           Please enter your email and password.
         </p>
         <div className="w-full flex flex-col gap-1">

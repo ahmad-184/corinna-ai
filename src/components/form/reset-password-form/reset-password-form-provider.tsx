@@ -1,6 +1,7 @@
 "use client";
 
 import AuthProvider from "@/contexts/use-auth-context";
+import { Fragment } from "react";
 
 const ResetPasswordFormProvider = ({
   children,
@@ -9,7 +10,7 @@ const ResetPasswordFormProvider = ({
 }) => {
   return (
     <AuthProvider>
-      <>{children}</>
+      <Fragment>{children}</Fragment>
     </AuthProvider>
   );
 };

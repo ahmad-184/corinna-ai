@@ -1,13 +1,14 @@
 import { z } from "zod";
 import { ZodValidator } from "./use-cases";
 import { validateUser } from "@/actions/auth";
-import { User } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 export function SafeAction<
   InputZod extends
     | z.ZodEffects<z.ZodObject<z.ZodRawShape>>
     | z.ZodIntersection<z.ZodObject<z.ZodRawShape>, z.ZodObject<z.ZodRawShape>>
-    | z.ZodObject<z.ZodRawShape>,
+    | z.ZodObject<z.ZodRawShape>
+    | z.ZodArray<z.ZodMap<z.ZodType, z.ZodType>, "many">,
   Output
 >(validator: InputZod, action: (input: z.infer<InputZod>) => Promise<Output>) {
   return async (input: z.infer<InputZod>) => {
@@ -31,11 +32,16 @@ export function AuthenticatedAction<
   InputZod extends
     | z.ZodEffects<z.ZodObject<z.ZodRawShape>>
     | z.ZodIntersection<z.ZodObject<z.ZodRawShape>, z.ZodObject<z.ZodRawShape>>
-    | z.ZodObject<z.ZodRawShape>,
+    | z.ZodObject<z.ZodRawShape>
+    | z.ZodArray<z.ZodString, "many">
+    | z.ZodArray<z.ZodMap<z.ZodType, z.ZodType>, "many">,
   Output
 >(
   validator: InputZod,
-  action: (input: z.infer<InputZod>, user: User) => Promise<Output>
+  action: (
+    input: z.infer<InputZod>,
+    user: Prisma.PromiseReturnType<typeof validateUser>
+  ) => Promise<Output>
 ) {
   return async (input: z.infer<InputZod>) => {
     try {

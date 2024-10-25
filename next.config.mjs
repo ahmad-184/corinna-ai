@@ -19,6 +19,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "dashboard.clerk.com",
       },
+      {
+        protocol: "https",
+        hostname: "ucarecdn.com",
+      },
     ],
   },
 };

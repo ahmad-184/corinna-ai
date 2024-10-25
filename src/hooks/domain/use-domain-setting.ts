@@ -1,9 +1,8 @@
 import { useForm } from "react-hook-form";
-import useUpload from "../use-upload";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDomainSettingFormSchema } from "@/zod/domain";
 import { useDomainSettingFormSchemaType } from "@/types";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
@@ -15,10 +14,9 @@ import {
 type Props = {
   defaultValues: useDomainSettingFormSchemaType;
   domain_id: string;
-  chatbot_id: string;
 };
 
-const useDomainSetting = ({ defaultValues, domain_id, chatbot_id }: Props) => {
+const useDomainSetting = ({ defaultValues, domain_id }: Props) => {
   const router = useRouter();
 
   const form = useForm<useDomainSettingFormSchemaType>({
@@ -31,13 +29,10 @@ const useDomainSetting = ({ defaultValues, domain_id, chatbot_id }: Props) => {
     useMutation({
       mutationFn: async (data: useDomainSettingFormSchemaType) => {
         const res = await updateDomainSettingsAction({
-          chatbot_id,
-          domain_id,
+          id: domain_id,
           data: {
-            name: data.name,
-            welcomeMessage: data.welcomeMessage,
-            chatbot_icon: data?.chatbot_icon || "",
-            domain_icon: data?.domain_icon || "",
+            domain_name: data.domain_name,
+            icon: data?.icon || "",
           },
         });
         return res;
@@ -45,8 +40,8 @@ const useDomainSetting = ({ defaultValues, domain_id, chatbot_id }: Props) => {
       onSuccess: (e) => {
         if (e.error) toast.error("Error", { description: e.error });
         if (e.data) {
-          if (e.data.domain.data?.name !== defaultValues.name)
-            router.push(`/dashboard/settings/${e.data.domain.data?.name}`);
+          if (e.data.data?.name !== defaultValues.domain_name)
+            router.push(`/dashboard/settings/${e.data.data?.name}`);
           router.refresh();
           toast.success("Settings updated");
         }
@@ -68,7 +63,7 @@ const useDomainSetting = ({ defaultValues, domain_id, chatbot_id }: Props) => {
   });
 
   const onUpdateDomainSettings = (values: useDomainSettingFormSchemaType) => {
-    if (!chatbot_id || !domain_id) return;
+    if (!domain_id) return;
     updateSettings(values);
   };
 

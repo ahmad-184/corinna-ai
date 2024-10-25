@@ -16,6 +16,7 @@ const UploadButton = ({
   value,
   className,
   getPreview,
+  label,
 }: {
   max_file?: number;
   maxSize?: number;
@@ -23,6 +24,7 @@ const UploadButton = ({
   value?: string | null | undefined;
   className?: string;
   getPreview?: (url: string) => void;
+  label?: string;
 }) => {
   const [preview, setPreview] = useState("");
 
@@ -111,7 +113,7 @@ const UploadButton = ({
             Uploading...
           </div>
         ) : (
-          "Edit image"
+          `${label || "Edit image"}`
         )}
       </Label>
     </div>

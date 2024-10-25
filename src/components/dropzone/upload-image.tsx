@@ -6,9 +6,7 @@ import { useDropzone } from "react-dropzone";
 import Image from "next/image";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Label } from "../ui/label";
-import { EditIcon, Trash } from "lucide-react";
-import { Spinner } from "../spinner";
+import { Loader } from "../loader";
 
 const UploadImage = ({
   max_file = 1,
@@ -30,8 +28,7 @@ const UploadImage = ({
   const [preview, setPreview] = useState("");
 
   useEffect(() => {
-    if (!value) return;
-    setPreview(value);
+    setPreview(value || "");
   }, [value]);
 
   useEffect(() => {
@@ -77,7 +74,6 @@ const UploadImage = ({
       if (!res) return toast.error("Could not upload file");
       getValue(res[0].file.secure_url, files);
       setFiles([]);
-      toast.success("File uploaded");
     } catch (err) {
       console.log(err);
       toast.error("Something went wrong, please try again");
@@ -93,53 +89,40 @@ const UploadImage = ({
   }, [files]);
 
   return (
-    <div className="w-full flex items-center gap-5">
-      <div className="flex-1 flex items-center gap-2 rounded-lg">
+    <div className="flex items-center gap-5">
+      <div className="flex items-center gap-4">
         <div
           style={{ width: "100%" }}
           {...getRootProps({ className: "dropzone" })}
         >
-          <input {...getInputProps()} />
-          <Label
-            htmlFor="upload-button"
-            className="flex rounded-lg bg-cream dark:bg-zinc-800 dark:text-zinc-300 pr-3 w-full gap-2 flex-1 p-3 text-gray-600 cursor-pointer font-semibold items-center text-sm"
-          >
-            <EditIcon size={24} />
-            {!isUploading && files[0]?.name ? (
-              files[0].name
-            ) : isUploading ? (
-              <div className="flex items-center gap-2">
-                <Spinner size="w-5 h-5" noPadding={true} />
-                Uploading...
-              </div>
-            ) : (
-              "Edit image"
+          <div
+            className={cn(
+              "border overflow-hidden cursor-pointer relative rounded-lg dark:bg-zinc-800 bg-zinc-100",
+              className,
+              {
+                hidden: !with_preview,
+              }
             )}
-          </Label>
+          >
+            {!!preview.length && (
+              <div className="relative w-full h-full" key={preview}>
+                <Image
+                  src={preview}
+                  alt="uploaded image"
+                  className="object-cover rounded-full w-full h-full"
+                  fill
+                />
+              </div>
+            )}
+            {isUploading ? (
+              <div className="z-50 bg-muted/40 absolute inset-0 w-full h-full backdrop-blur-lg flex items-center justify-center">
+                <Loader loading={true}>
+                  <></>
+                </Loader>
+              </div>
+            ) : null}
+          </div>
         </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <div
-          className={cn(
-            "border overflow-hidden relative rounded-full dark:bg-gray-800 bg-gray-100",
-            className,
-            {
-              hidden: !with_preview,
-            }
-          )}
-        >
-          {!!preview.length && (
-            <div className="relative w-full h-full" key={preview}>
-              <Image
-                src={preview}
-                alt="uploaded image"
-                className="object-cover w-full"
-                fill
-              />
-            </div>
-          )}
-        </div>
-        {/* <div className="flex flex-col gap-2">For more stuff</div> */}
       </div>
     </div>
   );

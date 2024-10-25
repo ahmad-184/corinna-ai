@@ -4,7 +4,6 @@ import { db } from "@/lib/db";
 import { AccesssibilityError, PublicError, returnError } from "@/lib/errors";
 import { AuthenticatedAction } from "@/lib/safe-action";
 import { z } from "zod";
-import { updateChatBotAction } from "./chat-bot";
 import {
   filterQuetionFormSchema,
   helpDeskFormSchema,
@@ -63,8 +62,8 @@ export const createDomainAction = AuthenticatedAction(
 
       if (
         (subscription.plan === "STANDARD" && domain_counts >= 1) ||
-        (subscription.plan === "PRO" && domain_counts >= 5) ||
-        (subscription.plan === "ULTIMATE" && domain_counts >= 10)
+        (subscription.plan === "PRO" && domain_counts >= 2) ||
+        (subscription.plan === "ULTIMATE" && domain_counts >= 5)
       )
         throw new PublicError(
           "You've reached the maximum number of domains, upgrade your plan"
@@ -89,6 +88,9 @@ export const createDomainAction = AuthenticatedAction(
           chatBot: {
             create: {
               welcomeMessage: "Hey there, have a question? Text us here.",
+              company_name: "",
+              name: "AI Assistant",
+              helpdesk: true,
             },
           },
         },
@@ -107,15 +109,15 @@ export const createDomainAction = AuthenticatedAction(
 export const updateDomainAction = AuthenticatedAction(
   z.object({
     id: z.string().min(1),
-    data: useDomainSettingFormSchema.pick({ name: true, domain_icon: true }),
+    data: useDomainSettingFormSchema.pick({ domain_name: true, icon: true }),
   }),
   async (data) => {
     try {
       const res = await db.domain.update({
         where: { id: data.id },
         data: {
-          name: data.data.name,
-          icon: data.data.domain_icon,
+          name: data.data.domain_name,
+          icon: data.data.icon,
         },
         select: {
           name: true,
@@ -159,23 +161,18 @@ export const deleteDomainAction = AuthenticatedAction(
 
 export const updateDomainSettingsAction = AuthenticatedAction(
   z.object({
-    domain_id: z.string().min(1),
-    chatbot_id: z.string().min(1),
+    id: z.string().min(1),
     data: useDomainSettingFormSchema,
   }),
-  async ({ chatbot_id, data, domain_id }, user) => {
+  async ({ data, id }, user) => {
     try {
       const domain_res = await updateDomainAction({
-        id: domain_id,
-        data: { name: data.name, domain_icon: data.domain_icon },
+        id,
+        data: { domain_name: data.domain_name, icon: data.icon },
       });
-      const chatbot_res = await updateChatBotAction({
-        id: chatbot_id,
-        data: { icon: data.chatbot_icon, welcomeMessage: data.welcomeMessage },
-      });
+
       return {
-        domain: domain_res,
-        chatbot: chatbot_res,
+        ...domain_res,
       };
     } catch (err) {
       returnError(err as Error);

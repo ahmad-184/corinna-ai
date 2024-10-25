@@ -1,9 +1,12 @@
 import { getUserSubscriptionPlan } from "@/actions/user";
+import CustomDialog from "@/components/custom/custom-dialog";
+import SubscriptionPlanForm from "@/components/form/subscription-plan-form";
 import Section from "@/components/section";
 import { Card, CardContent, CardDescription } from "@/components/ui/card";
 import { pricingCards } from "@/constants/pricing";
 import { UserType } from "@/types";
 import { CircleCheckBig, PlusIcon } from "lucide-react";
+import Image from "next/image";
 
 type Props = {
   user: UserType;
@@ -29,16 +32,32 @@ const BillingSetting = async ({ user }: Props) => {
         />
       </div>
       <div className="lg:col-span-2 flex justify-start lg:justify-center">
-        <Card className="border-dashed max-w-xl bg-cream dark:bg-zinc-800 border-zinc-400 w-full cursor-pointer h-[270px] flex justify-center items-center">
-          <CardContent className="flex gap-2 items-center">
-            <div className="rounded-full border-2 dark:border-muted-foreground p-1">
-              <PlusIcon className="text-muted-foreground" />
-            </div>
-            <CardDescription className="font-semibold">
-              Upgrade Plan
-            </CardDescription>
-          </CardContent>
-        </Card>
+        <CustomDialog
+          header="Upgrade your plan"
+          description="Tell us about yourself! What do you do? Let's tailor your experience so it best suits you."
+          content={<SubscriptionPlanForm plan={subscription_plan.plan} />}
+        >
+          {subscription_plan.plan === "STANDARD" ? (
+            <Card className="border-dashed max-w-xl bg-cream dark:bg-zinc-800 border-zinc-400 w-full cursor-pointer h-[270px] flex justify-center items-center">
+              <CardContent className="flex gap-2 items-center">
+                <div className="rounded-full border dark:border-muted-foreground p-1">
+                  <PlusIcon className="text-muted-foreground" />
+                </div>
+                <CardDescription className="font-semibold">
+                  Upgrade Plan
+                </CardDescription>
+              </CardContent>
+            </Card>
+          ) : (
+            <Image
+              src={"/images/creditcard.png"}
+              width={400}
+              height={400}
+              alt="credit card"
+              className="cursor-pointer"
+            />
+          )}
+        </CustomDialog>
       </div>
       <div className="lg:col-span-2">
         <h3 className="text-xl font-semibold mb-2">Current Plan</h3>

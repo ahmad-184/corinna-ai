@@ -25,10 +25,10 @@ const CheckEmailAndSendOtpForm = () => {
               Back
             </Link>
           </div>
-          <h2 className="text-gravel md:text-4xl md:mb-1 font-bold text-lg">
+          <h2 className="text-gravel dark:text-zinc-100 md:text-4xl md:mb-1 font-bold text-lg">
             Enter your email
           </h2>
-          <p className=" text-iridium text-sm font-medium">
+          <p className=" text-iridium dark:text-muted-foreground text-sm font-medium">
             Please enter your email so we can send you the reset password code
           </p>
         </div>

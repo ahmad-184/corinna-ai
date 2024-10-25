@@ -2,35 +2,30 @@
 
 import {
   createFilterQuestionAction,
-  deleteFilterQuestionAction,
   getAllFilterQuestionsAction,
 } from "@/actions/domain";
 import ButtonWithLoaderAndProgress from "@/components/button-with-loader-and-progress-bar";
 import FormGeneration from "@/components/form-generation";
 import { Loader } from "@/components/loader";
 import Section from "@/components/section";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { filterQuetionFormSchemaType } from "@/types";
 import { filterQuetionFormSchema } from "@/zod/domain";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { TrashIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import FilterQuestionItem from "./filter-question-item";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 type Props = { domain_id: string };
 
 const FilterQuestion = ({ domain_id }: Props) => {
+  const [parent] = useAutoAnimate();
+
   const { isIntersecting, ref } = useIntersectionObserver({
     threshold: 0.5,
   });
@@ -82,7 +77,7 @@ const FilterQuestion = ({ domain_id }: Props) => {
   return (
     <Card className="w-full grid grid-cols-1 lg:grid-cols-2" ref={ref}>
       <CardContent className="p-6 border-r-[1px]">
-        <CardTitle>Questions Bot Should Ask</CardTitle>
+        <CardTitle>Create Question</CardTitle>
         <Form {...form}>
           <form
             onSubmit={onCreateFilterQuestion}
@@ -130,7 +125,7 @@ const FilterQuestion = ({ domain_id }: Props) => {
       </CardContent>
       <CardContent className="p-6 overflow-y-auto">
         <Loader loading={fetchingData}>
-          <div className="flex flex-col gap-4 w-full">
+          <div className="flex flex-col gap-4 w-full" ref={parent}>
             {!!data?.data?.length &&
               data.data.map((e, i) => (
                 <FilterQuestionItem

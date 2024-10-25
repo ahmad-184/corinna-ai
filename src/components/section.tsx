@@ -1,10 +1,10 @@
-type Props = { label: string; message: string };
+type Props = { label: string; message?: string };
 
 const Section = ({ label, message }: Props) => {
   return (
-    <div>
+    <div className="select-none">
       <p className="text-sm font-medium mb-1">{label}</p>
-      <p className="text-sm font-light">{message}</p>
+      {!!message && <p className="text-sm font-light">{message}</p>}
     </div>
   );
 };

@@ -16,6 +16,8 @@ interface CustomAlertDialogProps {
   description?: string;
   content?: React.ReactNode;
   children: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (e: boolean) => void;
 }
 
 const CustomAlertDialog: React.FC<CustomAlertDialogProps> = ({
@@ -23,9 +25,11 @@ const CustomAlertDialog: React.FC<CustomAlertDialogProps> = ({
   content,
   description,
   children,
+  open,
+  onOpenChange,
 }) => {
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
       <AlertDialogContent className="h-fit max-h-[95vh]">
         <AlertDialogHeader>

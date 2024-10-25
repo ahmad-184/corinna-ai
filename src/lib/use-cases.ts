@@ -58,3 +58,39 @@ export const verifyJwtToken = async (token: string) => {
   const res = await jwt.verify(token, process.env.PW!);
   return res;
 };
+
+export const extractEmailsFromString = (text: string) => {
+  return text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi);
+};
+
+export const extractURLfromString = (url: string) => {
+  return url.match(/https?:\/\/[^\s"<>]+/);
+};
+
+export const extracStringBewteenDoubleStars = (url: string) => {
+  return url.match(/\*\*(.*?)\*\*/g);
+};
+
+export const isChatExpired = (date: Date) => {
+  const currentDate = new Date(Date.now());
+  const inputDate = new Date(date);
+  if (!date) return undefined;
+  return currentDate.getTime() - inputDate.getTime() > 2 * 3600000;
+};
+
+export const isBooked = (
+  bookings: { date: Date; slot: string }[] | null | undefined,
+  currentDate: Date,
+  slot: string
+) => {
+  if (!bookings?.length || !currentDate || !slot) return false;
+  return bookings.some((book) => {
+    const isDateEqual = Boolean(
+      `${book.date.getDate()}/${book.date.getMonth()}` ===
+        `${currentDate.getDate()}/${currentDate.getMonth()}` &&
+        book.slot === slot
+    );
+
+    return isDateEqual;
+  });
+};

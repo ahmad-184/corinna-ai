@@ -27,7 +27,7 @@ const ButtonWithLoaderAndProgress: React.FC<Props> = ({
 }) => {
   return (
     <Button
-      className={cn("disabled:opacity-100", className, {
+      className={cn("", className, {
         "opacity-50": isUploading || loading,
       })}
       {...props}

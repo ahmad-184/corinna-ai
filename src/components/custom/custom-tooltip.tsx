@@ -21,7 +21,9 @@ const CustomTooltip = ({
           <TooltipTrigger {...(asChild && { asChild })} type="button">
             {children}
           </TooltipTrigger>
-          <TooltipContent side={side}>{content}</TooltipContent>
+          <TooltipContent className="!font-medium" side={side}>
+            {content}
+          </TooltipContent>
         </Tooltip>
       ) : (
         <>{children}</>

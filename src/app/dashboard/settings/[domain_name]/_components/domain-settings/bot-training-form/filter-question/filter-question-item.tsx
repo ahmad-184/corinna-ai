@@ -8,7 +8,7 @@ import { toast } from "sonner";
 type Props = {
   refetchData: () => void;
   index: number;
-  item: Omit<FilterQuestions, "domainId">;
+  item: Omit<FilterQuestions, "domainId" | "createdAt" | "updatedAt">;
 };
 
 const FilterQuestionItem = ({ refetchData, index, item }: Props) => {

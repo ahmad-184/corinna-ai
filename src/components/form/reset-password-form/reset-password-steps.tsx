@@ -27,7 +27,7 @@ const ResetPasswordFormSteps = () => {
     case 3:
       return <ResetPasswordForm />;
     default:
-      return <></>;
+      return null;
   }
 };
 

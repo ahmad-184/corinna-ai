@@ -6,9 +6,11 @@ const Sidebar = async () => {
   const { data: domains } = await getUserDomains({});
 
   return (
-    <SidebarWrapper>
-      <SidebarContent domains={domains} />
-    </SidebarWrapper>
+    <>
+      <SidebarWrapper>
+        <SidebarContent domains={domains} />
+      </SidebarWrapper>
+    </>
   );
 };
 

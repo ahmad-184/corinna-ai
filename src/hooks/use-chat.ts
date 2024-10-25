@@ -1,64 +1,89 @@
 "use client";
 
+import { updateUnreadMessagesAction } from "@/actions/chat-bot";
 import {
-  getConversationModeAction,
+  getChatRoomConversationDataAction,
   toggleRealtimeAction,
 } from "@/actions/conversation";
 import { useChatStore } from "@/zustand/chat-store/chat-store-provider";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 const useChat = () => {
-  const chatRoom = useChatStore((store) => store.chatRoom);
+  const selected_chatroom = useChatStore((store) => store.selected_chatroom);
+  const rooms = useChatStore((store) => store.rooms);
   const setLoading = useChatStore((store) => store.setLoading);
-  const loading = useChatStore((store) => store.loading);
   const setRealtime = useChatStore((store) => store.setRealtime);
-  const realtime = useChatStore((store) => store.realtime);
+  const setChats = useChatStore((store) => store.setChats);
+  const setChatRoom = useChatStore((store) => store.setChatRoom);
+  const setCurrentRoom = useChatStore((store) => store.setCurrentRoom);
+  const channel = useChatStore((store) => store.channel);
+  const setUnreadMessagesRead = useChatStore(
+    (store) => store.setUnreadMessagesRead
+  );
 
-  const { mutate: toggleRealtime } = useMutation({
-    mutationFn: toggleRealtimeAction,
+  const { mutate: toggleRealtime, isPending: onActivateRealtimeLoading } =
+    useMutation({
+      mutationFn: toggleRealtimeAction,
+      onSuccess: (e) => {
+        if (e.error) toast.error("Error", { description: e.error });
+        if (e.data) {
+          setRealtime(e.data.live);
+          if (channel)
+            channel.send({
+              type: "broadcast",
+              event: "on_realtime",
+              payload: {
+                chatRoom: e.data.id || "",
+                mode: e.data.live,
+              },
+            });
+        }
+      },
+    });
+
+  const { mutate: getChatRoomConversationData } = useMutation({
+    mutationFn: getChatRoomConversationDataAction,
     onSuccess: (e) => {
       if (e.error) toast.error("Error", { description: e.error });
       if (e.data) {
-        setLoading(false);
         setRealtime(e.data.live);
+        setChats(e.data.message || []);
+        setLoading(false);
       }
     },
     onMutate: () => setLoading(true),
   });
 
-  const { refetch: refetchCurrentMode } = useQuery({
-    queryFn: () => getConversationModeAction({ id: chatRoom! }),
-    queryKey: [],
+  const { mutate: updateUnreadMessages } = useMutation({
+    mutationFn: updateUnreadMessagesAction,
+    onSuccess: (e) => {
+      if (e.error) toast.error("Error", { description: e.error });
+      if (e.data) {
+        setUnreadMessagesRead();
+      }
+    },
   });
 
   const onActivateRealtime = async (status: boolean) => {
-    if (!chatRoom) return;
-    toggleRealtime({ status, id: chatRoom });
+    if (!selected_chatroom) return;
+    toggleRealtime({ status, id: selected_chatroom });
   };
 
-  useEffect(() => {
-    if (!chatRoom) return;
-    (async () => {
-      setLoading(true);
-      const { data } = await refetchCurrentMode();
-      if (data) {
-        if (data.error)
-          return toast.error("Error", { description: data.error });
-        if (data.data) {
-          setRealtime(data.data.live);
-          setLoading(false);
-        }
-      }
-    })();
-  }, [chatRoom]);
+  const onFetchConversationData = async (chatroom_id: string) => {
+    if (!chatroom_id || selected_chatroom === chatroom_id) return;
+    setCurrentRoom(
+      rooms.find((e) => e.chatRoom[0].id === chatroom_id || undefined)
+    );
+    setChatRoom(chatroom_id);
+    getChatRoomConversationData({ id: chatroom_id });
+  };
 
   return {
-    chatRoom,
     onActivateRealtime,
-    loading,
-    realtime,
+    onActivateRealtimeLoading,
+    onFetchConversationData,
+    updateUnreadMessages,
   };
 };
 

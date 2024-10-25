@@ -10,7 +10,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // url      = env("DATABASE_URL")
+  url      = env("DATABASE_URL_LOCAL")
 }
 
 enum AccountType {
@@ -37,6 +38,9 @@ model Account {
 
   otpToken    String?   @unique
   otpExpireAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
 }
@@ -70,7 +74,7 @@ model User {
 
 model Domain {
   id   String @id @default(uuid())
-  name String
+  name String @unique
   icon String
 
   chatBot         ChatBot?
@@ -83,25 +87,39 @@ model Domain {
   userId     String?
   Campaign   Campaign?  @relation(fields: [campaignId], references: [id])
   campaignId String?
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  Transactions Transaction[]
 }
 
 model ChatBot {
   id             String  @id @default(uuid())
   welcomeMessage String?
   icon           String?
-  background     String?
-  textColor      String?
-  helpdesk       Boolean @default(false)
-  Domain         Domain? @relation(fields: [domainId], references: [id], onDelete: Cascade)
-  domainId       String? @unique
+  helpdesk       Boolean @default(true)
+  watermark      Boolean @default(false)
+  company_name   String? @default("")
+  avatar         String?
+  name           String? @default("AI Assistant")
+
+  Domain   Domain? @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  domainId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Billings {
-  id      String  @id @default(uuid())
-  plan    Plans   @default(STANDARD)
-  credits Int     @default(10)
-  User    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId  String? @unique
+  id            String  @id @default(uuid())
+  plan          Plans   @default(STANDARD)
+  credits       Int     @default(10)
+  spent_credits Int     @default(0)
+  User          User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model HelpDesk {
@@ -111,6 +129,9 @@ model HelpDesk {
 
   Domain   Domain @relation(fields: [domainId], references: [id], onDelete: Cascade)
   domainId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model FilterQuestions {
@@ -120,6 +141,9 @@ model FilterQuestions {
 
   Domain   Domain? @relation(fields: [domainId], references: [id], onDelete: Cascade)
   domainId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model CustomerResponses {
@@ -128,6 +152,9 @@ model CustomerResponses {
   answered   String?
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   customerId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Customer {
@@ -142,6 +169,11 @@ model Customer {
 
   Domain   Domain? @relation(fields: [domainId], references: [id], onDelete: Cascade)
   domainId String?
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  Campaign     Campaign[]
+  Transactions Transaction[]
 }
 
 model ChatRoom {
@@ -160,6 +192,8 @@ model ChatMessage {
   id         String    @id @default(uuid())
   message    String
   role       Role?
+  image      String?
+  link       String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   ChatRoom   ChatRoom? @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
@@ -179,14 +213,15 @@ model Bookings {
 }
 
 model Campaign {
-  id        String   @id @default(uuid())
-  name      String
-  customers String[]
-  domain    Domain[]
-  template  String?
-  User      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String?
-  createdAt DateTime @default(now())
+  id          String     @id @default(uuid())
+  name        String
+  customerIds String[]
+  domain      Domain[]
+  template    String?
+  User        User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String?
+  createdAt   DateTime   @default(now())
+  Customer    Customer[]
 }
 
 model Product {
@@ -197,6 +232,19 @@ model Product {
   createdAt DateTime @default(now())
   Domain    Domain?  @relation(fields: [domainId], references: [id], onDelete: Cascade)
   domainId  String?
+}
+
+model Transaction {
+  id    String @id @default(uuid())
+  price Int
+
+  domainId String
+  Domain   Domain @relation(fields: [domainId], references: [id], onDelete: Cascade)
+
+  customerId String
+  Customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
 }
 
 enum Plans {

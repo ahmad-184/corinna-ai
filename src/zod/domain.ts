@@ -13,7 +13,7 @@ export const createDomainFormSchema = z.object({
 });
 
 export const useDomainSettingFormSchema = z.object({
-  name: z
+  domain_name: z
     .string()
     .min(3, { message: "A domain must have atleast 3 characters" })
     .refine(
@@ -21,12 +21,13 @@ export const useDomainSettingFormSchema = z.object({
         /^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,3}$/.test(value ?? ""),
       { message: "This is not a valid domain" }
     ),
-  welcomeMessage: z
-    .string()
-    .min(6, { message: "Welcome message must have atleast 6 characters" }),
-  chatbot_icon: z.string().optional(),
-  domain_icon: z.string().optional(),
+  icon: z.string().optional(),
 });
+
+// welcomeMessage: z
+//   .string()
+//   .min(6, { message: "Welcome message must have atleast 6 characters" }),
+// chatbot_icon: z.string().optional(),
 
 export const helpDeskFormSchema = z.object({
   question: z.string().min(1, { message: "Question can not be empty" }),
@@ -35,4 +36,18 @@ export const helpDeskFormSchema = z.object({
 
 export const filterQuetionFormSchema = z.object({
   question: z.string().min(1, { message: "Question can not be empty" }),
+});
+
+export const generateBusinessNameWithAiFormSchema = z.object({
+  input: z
+    .string()
+    .min(1, { message: "Write about your business." })
+    .max(150, { message: "Reached max chars." }),
+});
+
+export const createProductFormSchema = z.object({
+  name: z.string().min(1),
+  price: z.string().min(1),
+  image: z.string().min(1),
+  domain_id: z.string().min(1),
 });

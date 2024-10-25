@@ -21,13 +21,18 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import HelpDeskItem from "./help-desk-item";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
+import { useRouter } from "next/navigation";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 type Props = { domain_id: string };
 
 const HelpDesk = ({ domain_id }: Props) => {
+  const [parent] = useAutoAnimate();
+
   const { isIntersecting, ref } = useIntersectionObserver({
     threshold: 0.5,
   });
+  const router = useRouter();
 
   const form = useForm<helpDeskFormSchemaType>({
     defaultValues: {
@@ -57,6 +62,7 @@ const HelpDesk = ({ domain_id }: Props) => {
         if (e.data) {
           refetch();
           reset();
+          router.refresh();
         }
       },
       retry: 3,
@@ -123,15 +129,17 @@ const HelpDesk = ({ domain_id }: Props) => {
       <CardContent className="p-6 overflow-y-auto">
         <Loader loading={fetchingData}>
           <Accordion defaultValue={"item-0"} type="single" collapsible={true}>
-            {!!data?.data?.length &&
-              data.data.map((e, i) => (
-                <HelpDeskItem
-                  key={e.id}
-                  item={e}
-                  refetchData={refetch}
-                  index={i}
-                />
-              ))}
+            <div ref={parent}>
+              {!!data?.data?.length &&
+                data.data.map((e, i) => (
+                  <HelpDeskItem
+                    key={e.id}
+                    item={e}
+                    refetchData={refetch}
+                    index={i}
+                  />
+                ))}
+            </div>
           </Accordion>
           {!data?.data?.length && (
             <div className="w-full h-full flex items-center justify-center">

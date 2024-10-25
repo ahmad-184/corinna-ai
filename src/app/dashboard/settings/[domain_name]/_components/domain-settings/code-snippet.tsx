@@ -2,7 +2,7 @@
 
 import Section from "@/components/section";
 import { cn } from "@/lib/utils";
-import { ChevronDownIcon, ChevronUpIcon, CopyIcon } from "lucide-react";
+import { ChevronDownIcon, CopyIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
